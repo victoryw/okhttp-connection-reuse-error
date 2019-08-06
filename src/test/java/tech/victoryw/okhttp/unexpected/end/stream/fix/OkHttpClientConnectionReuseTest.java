@@ -1,6 +1,7 @@
 package tech.victoryw.okhttp.unexpected.end.stream.fix;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -65,11 +66,12 @@ class OkHttpClientConnectionReuseTest {
 
     @Test
     void should_use_ok_http_get_user_name2() throws IOException, InterruptedException {
-        final OkHttpClient okHttpClient = okHttpClientProvider.getInstance();
-
+        final OkHttpClient okHttpClient = okHttpClientProvider.getInstance().
+                newBuilder().
+                addInterceptor(new RequestConnectionCloseInterceptor()).
+                build();
         try( Response response = okHttpClient.newCall(new Request.Builder()
                 .url(String.format("http://localhost:%d/users/self", port))
-                .header("Connection", "close")
                 .get()
                 .build()).execute();){
             assertEquals(200, response.code());
@@ -78,10 +80,10 @@ class OkHttpClientConnectionReuseTest {
         Thread.sleep(60500);
         try( Response response = okHttpClient.newCall(new Request.Builder()
                 .url(String.format("http://localhost:%d/users/self", port))
-                .header("Connection", "close")
                 .get()
                 .build()).execute();){
             assertEquals(200, response.code());
         }
     }
 }
+
